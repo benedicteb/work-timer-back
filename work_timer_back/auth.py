@@ -1,14 +1,14 @@
 from functools import wraps
 
 from flask import abort, request
-
-_SECRET_KEY = "abc123"
+from work_timer_back.app import app
 
 
 def authenticated():
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
+            secret_key = app.config["AUTHORIZATION_KEY"]
             auth_header = request.headers.get("Authorization")
 
             if not auth_header:
@@ -19,7 +19,7 @@ def authenticated():
             except ValueError:
                 return abort(401)
 
-            if method != "Bearer" or token != _SECRET_KEY:
+            if method != "Bearer" or token != secret_key:
                 return abort(401)
 
             return f(*args, **kwargs)

@@ -1,7 +1,9 @@
+import json
 from enum import Enum
 
 from flask_sqlalchemy import SQLAlchemy
 from work_timer_back.app import app
+from work_timer_back.json import ToJSONMixin
 from work_timer_back.utils import tz_aware_now
 
 db = SQLAlchemy(app)
@@ -12,7 +14,7 @@ class TableNames(Enum):
     events = "events"
 
 
-class Event(db.Model):
+class Event(db.Model, ToJSONMixin):
     __tablename__ = TableNames.events.value
 
     id = db.Column(db.Integer, primary_key=True)
@@ -31,7 +33,7 @@ class Event(db.Model):
     category = db.relationship("Category", back_populates="events")
 
 
-class Category(db.Model):
+class Category(db.Model, ToJSONMixin):
     __tablename__ = TableNames.category.value
 
     id = db.Column(db.Integer, primary_key=True)
@@ -40,3 +42,10 @@ class Category(db.Model):
     name = db.Column(db.Text, nullable=False)
 
     events = db.relationship("Event", back_populates="category")
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "created": self.created.isoformat(),
+            "name": self.name,
+        }
