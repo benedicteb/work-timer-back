@@ -6,6 +6,14 @@ from work_timer_back.utils import tz_aware_now
 from work_timer_back.models import Event, Category, db
 
 
+@app.route("/categories", methods=["GET"])
+@authenticated()
+def get_categories():
+    categories = db.session.query(Category).all()
+
+    return jsonify({"categories": categories})
+
+
 @app.route("/category", methods=["POST"])
 @authenticated()
 @require_json_fields(["categoryName"])
