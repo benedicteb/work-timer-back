@@ -22,8 +22,10 @@ class Event(db.Model, ToJSONMixin):
         db.DateTime(timezone=True), default=tz_aware_now, nullable=False
     )
 
-    start = db.Column(db.DateTime(timezone=True), nullable=False)
-    end = db.Column(db.DateTime(timezone=True), nullable=False)
+    start = db.Column(
+        db.DateTime(timezone=True), default=tz_aware_now, nullable=False
+    )
+    end = db.Column(db.DateTime(timezone=True), nullable=True)
 
     category_id = db.Column(
         db.Integer,
@@ -31,6 +33,17 @@ class Event(db.Model, ToJSONMixin):
         nullable=False,
     )
     category = db.relationship("Category", back_populates="events")
+
+    def to_json(self):
+        end = self.end.isoformat() if self.end else None
+
+        return {
+            "id": self.id,
+            "created": self.created.isoformat(),
+            "start": self.start.isoformat(),
+            "end": end,
+            "category_id": self.category_id,
+        }
 
 
 class Category(db.Model, ToJSONMixin):

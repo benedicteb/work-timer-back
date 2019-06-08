@@ -17,7 +17,7 @@ class ToJSONMixin:
         raise NotImplementedError()
 
 
-def parse_json_body(field_names):
+def require_json_fields(field_names):
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
@@ -34,6 +34,22 @@ def parse_json_body(field_names):
                     response.status_code = 400
 
                     return abort(response)
+
+            return f(body, *args, **kwargs)
+
+        return wrapped
+
+    return decorator
+
+
+def parse_json_body():
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            body = request.json
+
+            if body is None:
+                body = {}
 
             return f(body, *args, **kwargs)
 
