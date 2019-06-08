@@ -13,7 +13,7 @@ if __name__ == "__main__":
     app.config[
         "SQLALCHEMY_DATABASE_URI"
     ] = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
-    app.config["AUTHORIZATION_KEY"] = os.getenv("AUTHORIZATION_KEY")
+    app.config["AUTHORIZATION_KEY"] = os.getenv("AUTHORIZATION_KEY", "abc123")
 
     host = os.getenv("FLASK_HOST", "localhost")
     port = os.getenv("FLASK_PORT", "5000")

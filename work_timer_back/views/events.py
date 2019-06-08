@@ -47,22 +47,6 @@ def create_event(json, category_id):
     return jsonify(new_event)
 
 
-@app.route("/category/<category_id>/start", methods=["POST"])
-@authenticated()
-def start_event(category_id):
-    category = db.session.query(Category).get(category_id)
-
-    if not category:
-        return abort(400)
-
-    new_event = Event(category=category)
-
-    db.session.add(new_event)
-    db.session.commit()
-
-    return jsonify(new_event)
-
-
 @app.route("/event/<event_id>/stop", methods=["POST"])
 @authenticated()
 def stop_event(event_id):
