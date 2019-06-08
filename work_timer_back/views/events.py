@@ -53,7 +53,7 @@ def stop_event(event_id):
     event = db.session.query(Event).get(event_id)
 
     if not event:
-        return abort(404)
+        return abort(400)
 
     if event.end is not None:
         return abort(400)
@@ -71,6 +71,60 @@ def get_event(event_id):
     event = db.session.query(Event).get(event_id)
 
     if not event:
-        return abort(404)
+        return abort(400)
+
+    return jsonify(event)
+
+
+@app.route("/event/<event_id>", methods=["DELETE"])
+@authenticated()
+def delete_event(event_id):
+    event = db.session.query(Event).get(event_id)
+
+    if not event:
+        return abort(400)
+
+    db.session.remove(event)
+    db.session.commit()
+
+    return jsonify({"deleted": event_id})
+
+
+@app.route("/event/<event_id>", methods=["PUT"])
+@authenticated()
+@parse_json_body()
+def edit_event(json, event_id):
+    event = db.session.query(Event).get(event_id)
+
+    if not event:
+        return abort(400)
+
+    keys = json.keys()
+
+    if "start" in keys:
+        try:
+            start = dateutil.parser.parse(json["start"])
+        except ValueError:
+            return abort(400)
+
+        event.start = start
+
+    if "end" in keys:
+        try:
+            end = dateutil.parser.parse(json["end"])
+        except ValueError:
+            return abort(400)
+
+        event.end = end
+
+    if "categoryId" in keys:
+        category = db.session.query(Category).get(json["categoryId"])
+
+        if not category:
+            return abort(400)
+
+        event.category = category
+
+    db.session.commit()
 
     return jsonify(event)
