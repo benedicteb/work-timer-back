@@ -1,12 +1,17 @@
+import logging
+from enum import Enum
+
 import dateutil
 import dateutil.parser
 
-from flask import abort, jsonify
+from flask import abort, jsonify, request
 from work_timer_back.app import app
 from work_timer_back.auth import authenticated
 from work_timer_back.json import parse_json_body
 from work_timer_back.utils import tz_aware_now
 from work_timer_back.models import Event, Category, db
+
+_LOG = logging.getLogger(__name__)
 
 
 @app.route("/category/<category_id>/event", methods=["POST"])
@@ -128,3 +133,41 @@ def edit_event(json, event_id):
     db.session.commit()
 
     return jsonify(event)
+
+
+@app.route("/events", methods=["GET"])
+@authenticated()
+def get_events():
+    query = db.session.query(Event)
+    query_params = request.args
+
+    class QueryParams(Enum):
+        after = "after"
+        before = "before"
+        running = "running"
+
+    if QueryParams.after.value in query_params.keys():
+        try:
+            after = dateutil.parser.parse(
+                query_params[QueryParams.after.value]
+            )
+        except ValueError:
+            return abort(400)
+
+        query = query.filter(Event.start > after)
+
+    if QueryParams.before.value in query_params.keys():
+        try:
+            before = dateutil.parser.parse(
+                query_params[QueryParams.before.value]
+            )
+        except ValueError:
+            return abort(400)
+
+        query = query.filter(Event.start < before)
+
+    if QueryParams.running.value in query_params.keys():
+        if query_params[QueryParams.running.value] == "1":
+            query = query.filter(Event.end == None)
+
+    return jsonify({"events": query.all()})
